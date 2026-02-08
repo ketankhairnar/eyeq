@@ -1,7 +1,8 @@
 import { createRng, hashDateString } from './seed.js';
 
 const ROUND_TYPES = ['count', 'proportion', 'comparison', 'density', 'countExtreme', 'depth', 'tunnel', 'cluster3d'];
-const ROUNDS_PER_GAME = 5;
+const ROUNDS_PER_GAME = 8;
+const ROUND_TIME = 15;
 
 const ROUND_CONFIG = {
   count:        { question: 'How many signals intercepted?', minRange: 30, maxRange: 80 },
@@ -46,10 +47,10 @@ const AI_WEAKNESS = {
 };
 
 const BADGES = [
-  { min: 450, name: 'CALIBRATED', flavor: 'Your frequency is locked in.' },
-  { min: 350, name: 'TUNED IN',   flavor: 'Strong signal detected.' },
-  { min: 250, name: 'ON FREQUENCY', flavor: "You're picking up the signal." },
-  { min: 150, name: 'STATIC',     flavor: 'Adjust your antenna.' },
+  { min: 720, name: 'CALIBRATED', flavor: 'Your frequency is locked in.' },
+  { min: 560, name: 'TUNED IN',   flavor: 'Strong signal detected.' },
+  { min: 400, name: 'ON FREQUENCY', flavor: "You're picking up the signal." },
+  { min: 240, name: 'STATIC',     flavor: 'Adjust your antenna.' },
   { min: 0,   name: 'OFF AIR',    flavor: 'Signal lost.' },
 ];
 
@@ -86,7 +87,7 @@ export function createGame(dateStr, playId = 0) {
       score: null,
       tier: null,
       hintUsed: false,
-      timeRemaining: 25,
+      timeRemaining: ROUND_TIME,
     };
   });
 
@@ -140,7 +141,7 @@ export function submitEstimate(game, estimate) {
 }
 
 export function advanceRound(game) {
-  if (game.currentRound >= 4) {
+  if (game.currentRound >= ROUNDS_PER_GAME - 1) {
     game.status = 'finished';
     game.endTime = Date.now();
     return false;
@@ -184,4 +185,4 @@ export function getElapsedTime(game) {
   return Math.round((end - game.startTime) / 1000);
 }
 
-export { ROUND_TYPES, ROUNDS_PER_GAME, ROUND_CONFIG, SCORE_TIERS, AI_WEAKNESS };
+export { ROUND_TYPES, ROUNDS_PER_GAME, ROUND_TIME, ROUND_CONFIG, SCORE_TIERS, AI_WEAKNESS };

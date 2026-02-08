@@ -50,17 +50,17 @@ assert(pn2 === 2, `Puzzle #2 on day 2: got ${pn2}`);
 section('Game State Machine');
 
 const game = createGame('2026-02-08');
-assert(game.rounds.length === 5, `5 rounds (from 8 types): got ${game.rounds.length}`);
+assert(game.rounds.length === 8, `8 rounds (all types): got ${game.rounds.length}`);
 assert(game.status === 'ready', `Initial status: ${game.status}`);
 assert(game.currentRound === 0, `Starts at round 0`);
 assert(game.totalScore === 0, `Score starts at 0`);
 
-// 5 rounds picked from 8 types, all unique
-const allTypes = new Set(['count', 'proportion', 'comparison', 'density', 'countExtreme', 'depth', 'tunnel', 'cluster3d']);
+// All 8 round types present (order is shuffled per playId)
+const expectedTypes = new Set(['count', 'proportion', 'comparison', 'density', 'countExtreme', 'depth', 'tunnel', 'cluster3d']);
 const actualTypes = new Set(game.rounds.map(r => r.type));
-assert(actualTypes.size === 5, `5 unique round types: got ${actualTypes.size}`);
-for (const t of actualTypes) {
-  assert(allTypes.has(t), `Round type ${t} is valid`);
+assert(actualTypes.size === 8, `8 unique round types: got ${actualTypes.size}`);
+for (const t of expectedTypes) {
+  assert(actualTypes.has(t), `Has round type ${t}`);
 }
 
 // === SCORING ===
@@ -95,7 +95,7 @@ section('Full Game Simulation');
 const simGame = createGame('2026-02-08');
 simGame.startTime = Date.now();
 
-for (let i = 0; i < 5; i++) {
+for (let i = 0; i < 8; i++) {
   const round = simGame.rounds[i];
   // Simulate setting actual answer (normally canvas does this)
   const fakeAnswer = round.dialMin + Math.round((round.dialMax - round.dialMin) * 0.5);
@@ -113,7 +113,7 @@ for (let i = 0; i < 5; i++) {
   assert(result.score === 100, `R${i+1} score = 100`);
   assert(simGame.status === 'revealed', `Status = revealed after submit`);
 
-  if (i < 4) {
+  if (i < 7) {
     const advanced = advanceRound(simGame);
     assert(advanced === true, `Advance R${i+1}->R${i+2}`);
     assert(simGame.status === 'playing', `Status = playing after advance`);
@@ -122,16 +122,16 @@ for (let i = 0; i < 5; i++) {
 
 // Final round
 const finished = advanceRound(simGame);
-assert(finished === false, `Game ends after R5`);
+assert(finished === false, `Game ends after R8`);
 assert(simGame.status === 'finished', `Status = finished`);
-assert(simGame.totalScore === 500, `Perfect score: ${simGame.totalScore}`);
+assert(simGame.totalScore === 800, `Perfect score: ${simGame.totalScore}`);
 
 // Badge
-const badge = getBadge(500);
-assert(badge.name === 'CALIBRATED', `500pts = CALIBRATED: got ${badge.name}`);
+const badge = getBadge(800);
+assert(badge.name === 'CALIBRATED', `800pts = CALIBRATED: got ${badge.name}`);
 
-const badge2 = getBadge(250);
-assert(badge2.name === 'ON FREQUENCY', `250pts = ON FREQUENCY: got ${badge2.name}`);
+const badge2 = getBadge(400);
+assert(badge2.name === 'ON FREQUENCY', `400pts = ON FREQUENCY: got ${badge2.name}`);
 
 const badge3 = getBadge(50);
 assert(badge3.name === 'OFF AIR', `50pts = OFF AIR: got ${badge3.name}`);

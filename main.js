@@ -1,5 +1,5 @@
 import './style.css';
-import { createGame, setActualAnswer, submitEstimate, advanceRound, useHint, getBadge, getElapsedTime, ROUND_TYPES } from './src/game.js';
+import { createGame, setActualAnswer, submitEstimate, advanceRound, useHint, getBadge, getElapsedTime, ROUND_TYPES, ROUNDS_PER_GAME, ROUND_TIME } from './src/game.js';
 import { getTodayDateString, getPuzzleNumber, createRng, hashDateString, nextPlayId } from './src/seed.js';
 import { Dial } from './src/dial.js';
 import { createPuzzleCanvas, generateRound } from './src/canvas.js';
@@ -108,7 +108,7 @@ function showStartScreen() {
   questionArea.innerHTML = `<div style="padding:24px 0">
     <div class="neon-text" style="font-size:clamp(28px,7vw,40px);font-weight:800;letter-spacing:0.12em;margin-bottom:12px">EYEQ <span style="font-size:0.5em;opacity:0.5">#${game.puzzleNumber}</span></div>
     <div style="color:var(--text);font-size:clamp(15px,3.5vw,18px);font-weight:700;letter-spacing:0.04em;margin-bottom:6px">TUNE YOUR FREQUENCY</div>
-    <div style="color:var(--muted);font-size:14px;font-weight:600">5 rounds · 25s each · beat the AI</div>
+    <div style="color:var(--muted);font-size:14px;font-weight:600">${ROUNDS_PER_GAME} rounds · ${ROUND_TIME}s each · beat the AI</div>
   </div>`;
 
   // Hide dial on start screen — timer shouldn't be visible yet
@@ -172,8 +172,8 @@ function startRound() {
   setActualAnswer(game, game.currentRound, actualAnswer);
 
   dial.setRange(round.dialMin, round.dialMax);
-  dial.timerRemaining = 25;
-  dial.timerTotal = 25;
+  dial.timerRemaining = ROUND_TIME;
+  dial.timerTotal = ROUND_TIME;
 
   renderStatusDots();
 
@@ -183,7 +183,7 @@ function startRound() {
   `;
 
   controlsArea.innerHTML = `
-    <button class="btn" id="hint-btn">HINT −5s</button>
+    <button class="btn" id="hint-btn">HINT −${Math.round(ROUND_TIME * 0.2)}s</button>
     <button class="btn btn-primary" id="lockin-btn">LOCK IN</button>
   `;
 
@@ -207,7 +207,7 @@ function startRoundTimer() {
     dial.setTimerRemaining(remaining);
 
     // Ambient shifts with urgency
-    const pct = remaining / 25;
+    const pct = remaining / ROUND_TIME;
     if (pct <= 0.12) setAmbient('danger', 0.5);
     else if (pct <= 0.32) setAmbient('timer', 0.35);
     else setAmbient('playing', 0.25);
@@ -224,7 +224,8 @@ function onHint() {
   if (!hintText) return;
 
   const round = game.rounds[game.currentRound];
-  round.timeRemaining = Math.max(0, round.timeRemaining - 5);
+  const hintPenalty = Math.round(ROUND_TIME * 0.2);
+  round.timeRemaining = Math.max(0, round.timeRemaining - hintPenalty);
 
   questionArea.innerHTML += `<div style="color:var(--cyan);font-size:13px;margin-top:4px;animation:popIn 0.3s">${hintText}</div>`;
 
@@ -277,7 +278,7 @@ function onLockIn() {
     </div>
   `;
 
-  controlsArea.innerHTML = game.currentRound < 4
+  controlsArea.innerHTML = game.currentRound < ROUNDS_PER_GAME - 1
     ? '<button class="btn btn-primary" id="next-btn">NEXT SIGNAL</button>'
     : '<button class="btn btn-primary" id="results-btn">SEE RESULTS</button>';
 
@@ -335,15 +336,33 @@ function showResults() {
     <span>${game.totalScore}</span>
   `;
 
-  if (game.totalScore >= 350) {
+  // Tiered celebrations — small to big based on score
+  const maxScore = ROUNDS_PER_GAME * 100;
+  const scorePct = game.totalScore / maxScore;
+  if (scorePct >= 0.9) {
+    // CALIBRATED — full fireworks burst
+    confetti({ particleCount: 200, spread: 100, origin: { y: 0.5 } });
+    setTimeout(() => confetti({ particleCount: 80, angle: 60, spread: 55, origin: { x: 0 } }), 300);
+    setTimeout(() => confetti({ particleCount: 80, angle: 120, spread: 55, origin: { x: 1 } }), 300);
+  } else if (scorePct >= 0.7) {
+    // TUNED IN — solid burst
     confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+  } else if (scorePct >= 0.5) {
+    // ON FREQUENCY — modest pop
+    confetti({ particleCount: 40, spread: 50, origin: { y: 0.65 } });
+  } else if (scorePct >= 0.3) {
+    // STATIC — small puff
+    confetti({ particleCount: 15, spread: 30, origin: { y: 0.7 }, gravity: 1.5 });
+  } else {
+    // OFF AIR — tiny sad poof
+    confetti({ particleCount: 5, spread: 20, origin: { y: 0.75 }, gravity: 2 });
   }
 
   // Hero: score + badge + emoji + matchup
   canvasArea.innerHTML = `
     <div style="text-align:center;padding:20px 16px 12px;animation:popIn 0.4s;width:100%">
       <div style="font-size:clamp(56px,14vw,72px);font-weight:800;letter-spacing:-0.03em;margin-bottom:2px" class="neon-text">
-        ${game.totalScore}<span style="font-size:0.4em;color:var(--muted);font-weight:700">/500</span>
+        ${game.totalScore}<span style="font-size:0.4em;color:var(--muted);font-weight:700">/${ROUNDS_PER_GAME * 100}</span>
       </div>
       <div style="font-size:clamp(18px,4.5vw,24px);font-weight:800;letter-spacing:0.15em;text-transform:uppercase;color:var(--cyan);margin-bottom:4px">
         ${badge.name}

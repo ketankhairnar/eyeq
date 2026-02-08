@@ -1,4 +1,4 @@
-import { getBadge, getElapsedTime } from './game.js';
+import { getBadge, getElapsedTime, ROUNDS_PER_GAME } from './game.js';
 
 export function buildShareString(game) {
   const badge = getBadge(game.totalScore);
@@ -7,12 +7,13 @@ export function buildShareString(game) {
   const minutes = Math.floor(elapsed / 60);
   const seconds = elapsed % 60;
   const timeStr = `${minutes}:${String(seconds).padStart(2, '0')}`;
+  const maxScore = ROUNDS_PER_GAME * 100;
 
   return [
     `EYEQ #${game.puzzleNumber}`,
     `Human ${game.humanWins} — AI ${game.aiWins}`,
     emojiLine,
-    `${badge.name} — ${game.totalScore}/500`,
+    `${badge.name} — ${game.totalScore}/${maxScore}`,
     timeStr,
     `eyeq.game`,
   ].join('\n');
