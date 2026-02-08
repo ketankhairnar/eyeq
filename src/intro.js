@@ -19,15 +19,24 @@ export function startIntro(canvas, themeId) {
   const ctx = canvas.getContext('2d');
   const theme = getTheme(themeId);
 
-  // Pre-render snapshots on offscreen canvases with randomised seeds
-  const snapshots = ROUND_TYPES.map((type) => {
+  // Render first snapshot immediately, rest lazily across frames
+  const snapshots = ROUND_TYPES.map((type) => ({
+    canvas: null, label: TYPE_LABELS[type] || type, type,
+  }));
+
+  function ensureSnapshot(i) {
+    if (snapshots[i].canvas) return;
     const off = document.createElement('canvas');
     off.width = CANVAS_W;
     off.height = CANVAS_H;
-    const seed = hashDateString('demo_' + type + '_' + Date.now());
-    generateRound(off, type, seed, themeId);
-    return { canvas: off, label: TYPE_LABELS[type] || type };
-  });
+    const seed = hashDateString('demo_' + snapshots[i].type + '_' + Date.now());
+    generateRound(off, snapshots[i].type, seed, themeId);
+    snapshots[i].canvas = off;
+  }
+
+  // Render first one synchronously so frame 1 has content
+  ensureSnapshot(0);
+  let nextToGen = 1;
 
   const DISPLAY_MS = 2000;
   const FADE_MS = 600;
@@ -35,11 +44,18 @@ export function startIntro(canvas, themeId) {
   let startTime = performance.now();
 
   function frame(now) {
+    // Lazily generate one more snapshot per frame until all ready
+    if (nextToGen < snapshots.length) {
+      ensureSnapshot(nextToGen);
+      nextToGen++;
+    }
+
     const elapsed = now - startTime;
-    const totalCycle = snapshots.length * CYCLE_MS;
+    const readyCount = nextToGen;
+    const totalCycle = readyCount * CYCLE_MS;
     const pos = elapsed % totalCycle;
-    const idx = Math.floor(pos / CYCLE_MS);
-    const inCycle = pos - idx * CYCLE_MS;
+    const idx = Math.floor(pos / CYCLE_MS) % readyCount;
+    const inCycle = pos - Math.floor(pos / CYCLE_MS) * CYCLE_MS;
 
     ctx.clearRect(0, 0, CANVAS_W, CANVAS_H);
 
@@ -51,7 +67,7 @@ export function startIntro(canvas, themeId) {
     } else {
       // Crossfade
       const fadeT = (inCycle - DISPLAY_MS) / FADE_MS;
-      const nextIdx = (idx + 1) % snapshots.length;
+      const nextIdx = (idx + 1) % readyCount;
       ctx.globalAlpha = 1 - fadeT;
       ctx.drawImage(cur.canvas, 0, 0);
       ctx.globalAlpha = fadeT;
@@ -61,7 +77,7 @@ export function startIntro(canvas, themeId) {
     ctx.globalAlpha = 1;
 
     // Determine active slide index
-    const activeIdx = inCycle < DISPLAY_MS ? idx : (idx + 1) % snapshots.length;
+    const activeIdx = inCycle < DISPLAY_MS ? idx : (idx + 1) % readyCount;
 
     // Dark backdrop strip behind label + dots for readability
     const stripH = 72;
@@ -83,11 +99,12 @@ export function startIntro(canvas, themeId) {
     // Pagination dots
     const dotR = 6;
     const gap = 24;
-    const dotsW = (snapshots.length - 1) * gap;
+    const total = snapshots.length;
+    const dotsW = (total - 1) * gap;
     const dotsX = CANVAS_W / 2 - dotsW / 2;
     const dotsY = CANVAS_H - 14;
     ctx.globalAlpha = 1;
-    for (let i = 0; i < snapshots.length; i++) {
+    for (let i = 0; i < total; i++) {
       ctx.beginPath();
       ctx.arc(dotsX + i * gap, dotsY, dotR, 0, Math.PI * 2);
       ctx.fillStyle = i === activeIdx ? theme.primary : theme.dim;

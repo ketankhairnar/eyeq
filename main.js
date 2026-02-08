@@ -74,6 +74,9 @@ function init() {
   puzzleCanvas = createPuzzleCanvas(canvasArea);
   applyCanvasTheme();
 
+  // Show start screen + intro animation immediately, before heavy Dial setup
+  showStartScreen();
+
   const dialSize = Math.min(dialArea.clientWidth - 32, 260);
 
   dial = new Dial(dialArea, {
@@ -95,8 +98,6 @@ function init() {
       document.getElementById('hint-btn')?.click();
     }
   });
-
-  showStartScreen();
 }
 
 function showStartScreen() {
