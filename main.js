@@ -366,8 +366,11 @@ function showResults() {
   `;
 
   controlsArea.innerHTML = `
+    <button class="btn" id="replay-btn">PLAY AGAIN</button>
     <button class="btn btn-primary" id="share-btn" style="animation:pulse 2s infinite">SHARE RESULT</button>
   `;
+
+  document.getElementById('replay-btn').addEventListener('click', resetGame);
 
   document.getElementById('share-btn').addEventListener('click', async () => {
     playShare();
@@ -379,6 +382,25 @@ function showResults() {
       if (btn) btn.textContent = 'SHARE RESULT';
     }, 2000);
   });
+}
+
+function resetGame() {
+  const dateStr = getTodayDateString();
+  localStorage.removeItem('eyeq_' + dateStr);
+
+  game = null;
+  dial = null;
+  puzzleCanvas = null;
+  if (roundTimer) clearInterval(roundTimer);
+  roundTimer = null;
+
+  canvasArea.innerHTML = '';
+  questionArea.innerHTML = '';
+  dialArea.innerHTML = '';
+  controlsArea.innerHTML = '';
+  statusBar.innerHTML = '';
+
+  init();
 }
 
 function updateStats(game) {
