@@ -78,10 +78,10 @@ function init() {
   // Show start screen + intro animation immediately, before heavy Dial setup
   showStartScreen();
 
-  const dialSize = Math.min(dialArea.clientWidth - 32, 260);
+  const dialSize = Math.min(dialArea.clientWidth - 32, 230);
 
   dial = new Dial(dialArea, {
-    size: Math.max(dialSize, 180),
+    size: Math.max(dialSize, 170),
     onValueChange: () => {},
     onRelease: () => onLockIn(),
   });
@@ -105,10 +105,10 @@ function init() {
 function showStartScreen() {
   setAmbient('idle', 0.2);
   statusBar.innerHTML = '';
-  questionArea.innerHTML = `<div style="padding:24px 0">
-    <div class="neon-text" style="font-size:clamp(28px,7vw,40px);font-weight:800;letter-spacing:0.12em;margin-bottom:12px">EYEQ <span style="font-size:0.5em;opacity:0.5">#${game.puzzleNumber}</span></div>
-    <div style="color:var(--text);font-size:clamp(15px,3.5vw,18px);font-weight:700;letter-spacing:0.04em;margin-bottom:6px">TUNE YOUR FREQUENCY</div>
-    <div style="color:var(--muted);font-size:14px;font-weight:600">${ROUNDS_PER_GAME} rounds · ${ROUND_TIME}s each · beat the AI</div>
+  questionArea.innerHTML = `<div class="fade-slide-in" style="padding:20px 0">
+    <div class="neon-text" style="font-size:clamp(28px,7vw,40px);font-weight:800;letter-spacing:0.12em;margin-bottom:10px">EYEQ <span style="font-size:0.5em;opacity:0.5">#${game.puzzleNumber}</span></div>
+    <div style="color:var(--text);font-size:clamp(15px,3.5vw,18px);font-weight:700;letter-spacing:0.04em;margin-bottom:4px">TUNE YOUR FREQUENCY</div>
+    <div style="color:var(--muted);font-size:13px;font-weight:600">${ROUNDS_PER_GAME} rounds · ${ROUND_TIME}s each · beat the AI</div>
   </div>`;
 
   // Hide dial on start screen — timer shouldn't be visible yet
@@ -119,7 +119,7 @@ function showStartScreen() {
     startIntro(puzzleCanvas, currentThemeId);
   }
 
-  controlsArea.innerHTML = '<button class="btn btn-primary" id="start-btn">START</button>';
+  controlsArea.innerHTML = '<button class="btn btn-primary fade-in" id="start-btn">START</button>';
   document.getElementById('start-btn').addEventListener('click', startGame);
 }
 
@@ -178,13 +178,13 @@ function startRound() {
   renderStatusDots();
 
   questionArea.innerHTML = `
-    <div>${round.question}</div>
-    <div style="font-size:11px;color:var(--muted);margin-top:4px">AI weakness: ${round.aiWeakness}</div>
+    <div class="fade-slide-in">${round.question}</div>
+    <div class="fade-slide-in" style="font-size:11px;color:var(--muted);margin-top:3px;animation-delay:0.05s">AI weakness: ${round.aiWeakness}</div>
   `;
 
   controlsArea.innerHTML = `
-    <button class="btn" id="hint-btn">HINT −${Math.round(ROUND_TIME * 0.2)}s</button>
-    <button class="btn btn-primary" id="lockin-btn">LOCK IN</button>
+    <button class="btn fade-in" id="hint-btn" style="animation-delay:0.1s">HINT −${Math.round(ROUND_TIME * 0.2)}s</button>
+    <button class="btn btn-primary fade-in" id="lockin-btn" style="animation-delay:0.15s">LOCK IN</button>
   `;
 
   document.getElementById('hint-btn').addEventListener('click', onHint);
@@ -262,25 +262,25 @@ function onLockIn() {
 
   const tierColor = dial._tierToCSS(round.tier.color);
   questionArea.innerHTML = `
-    <div style="display:flex;justify-content:center;gap:16px;animation:popIn 0.3s">
+    <div class="fade-slide-in" style="display:flex;justify-content:center;gap:16px">
       <div style="text-align:center">
         <div style="font-size:11px;color:var(--muted);letter-spacing:0.1em;margin-bottom:2px">YOU</div>
-        <div style="font-size:24px;font-weight:800;color:${tierColor}">${round.playerEstimate}</div>
+        <div style="font-size:22px;font-weight:800;color:${tierColor}">${round.playerEstimate}</div>
       </div>
       <div style="text-align:center">
         <div style="font-size:11px;color:var(--muted);letter-spacing:0.1em;margin-bottom:2px">ACTUAL</div>
-        <div style="font-size:24px;font-weight:800;color:var(--text)">${round.actualAnswer}</div>
+        <div style="font-size:22px;font-weight:800;color:var(--text)">${round.actualAnswer}</div>
       </div>
       <div style="text-align:center">
         <div style="font-size:11px;color:var(--muted);letter-spacing:0.1em;margin-bottom:2px">AI</div>
-        <div style="font-size:24px;font-weight:800;color:var(--muted)">${round.aiEstimate}</div>
+        <div style="font-size:22px;font-weight:800;color:var(--muted)">${round.aiEstimate}</div>
       </div>
     </div>
   `;
 
   controlsArea.innerHTML = game.currentRound < ROUNDS_PER_GAME - 1
-    ? '<button class="btn btn-primary" id="next-btn">NEXT SIGNAL</button>'
-    : '<button class="btn btn-primary" id="results-btn">SEE RESULTS</button>';
+    ? '<button class="btn btn-primary fade-in" id="next-btn">NEXT SIGNAL</button>'
+    : '<button class="btn btn-primary fade-in" id="results-btn">SEE RESULTS</button>';
 
   const nextBtn = document.getElementById('next-btn') || document.getElementById('results-btn');
   nextBtn.addEventListener('click', () => {
@@ -360,28 +360,28 @@ function showResults() {
 
   // Hero: score + badge + emoji + matchup
   canvasArea.innerHTML = `
-    <div style="text-align:center;padding:20px 16px 12px;animation:popIn 0.4s;width:100%">
-      <div style="font-size:clamp(56px,14vw,72px);font-weight:800;letter-spacing:-0.03em;margin-bottom:2px" class="neon-text">
+    <div class="fade-slide-in" style="text-align:center;padding:16px 16px 8px;width:100%">
+      <div style="font-size:clamp(52px,13vw,68px);font-weight:800;letter-spacing:-0.03em;margin-bottom:2px" class="neon-text">
         ${game.totalScore}<span style="font-size:0.4em;color:var(--muted);font-weight:700">/${ROUNDS_PER_GAME * 100}</span>
       </div>
-      <div style="font-size:clamp(18px,4.5vw,24px);font-weight:800;letter-spacing:0.15em;text-transform:uppercase;color:var(--cyan);margin-bottom:4px">
+      <div style="font-size:clamp(16px,4vw,22px);font-weight:800;letter-spacing:0.15em;text-transform:uppercase;color:var(--cyan);margin-bottom:3px">
         ${badge.name}
       </div>
-      <div style="font-size:14px;color:var(--muted);margin-bottom:16px">${badge.flavor}</div>
-      <div style="font-size:clamp(22px,5.5vw,30px);letter-spacing:8px;margin-bottom:14px;font-weight:800">${emojiLine}</div>
-      <div style="font-size:clamp(18px,4.5vw,22px);font-weight:800;letter-spacing:0.04em">
+      <div style="font-size:13px;color:var(--muted);margin-bottom:12px">${badge.flavor}</div>
+      <div style="font-size:clamp(20px,5vw,28px);letter-spacing:6px;margin-bottom:10px;font-weight:800">${emojiLine}</div>
+      <div style="font-size:clamp(16px,4vw,20px);font-weight:800;letter-spacing:0.04em">
         HUMAN ${game.humanWins} — AI ${game.aiWins}
       </div>
-      <div style="font-size:13px;color:var(--muted);margin-top:4px;letter-spacing:0.08em">${timeStr}</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:3px;letter-spacing:0.08em">${timeStr}</div>
     </div>
   `;
 
   // Round breakdown in question area
   questionArea.innerHTML = `
-    <div style="display:flex;flex-direction:column;gap:6px;font-variant-numeric:tabular-nums;padding:4px 0">
+    <div style="display:flex;flex-direction:column;gap:4px;font-variant-numeric:tabular-nums;padding:2px 0">
       ${game.rounds.map((r, i) => {
         const c = tierCSS[r.tier.color] || tierCSS.cyan;
-        return `<div style="display:flex;align-items:center;justify-content:center;gap:10px;font-size:clamp(12px,3vw,14px)">
+        return `<div class="fade-slide-in" style="display:flex;align-items:center;justify-content:center;gap:8px;font-size:clamp(11px,2.8vw,13px);animation-delay:${i * 0.04}s">
           <span style="color:${c};font-weight:800">${r.tier.emoji} +${r.score}</span>
           <span style="color:var(--muted)">You: ${r.playerEstimate}</span>
           <span style="color:var(--text);font-weight:700">${r.actualAnswer}</span>
@@ -392,8 +392,8 @@ function showResults() {
   `;
 
   controlsArea.innerHTML = `
-    <button class="btn" id="replay-btn">PLAY AGAIN</button>
-    <button class="btn btn-primary" id="share-btn" style="animation:pulse 2s infinite">SHARE RESULT</button>
+    <button class="btn fade-in" id="replay-btn" style="animation-delay:0.2s">PLAY AGAIN</button>
+    <button class="btn btn-primary fade-in" id="share-btn" style="animation-delay:0.3s">SHARE RESULT</button>
   `;
 
   document.getElementById('replay-btn').addEventListener('click', resetGame);
