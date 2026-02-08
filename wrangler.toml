@@ -1,0 +1,8 @@
+name = "eyeq"
+compatibility_date = "2026-02-08"
+
+[site]
+bucket = "./dist"
+
+[build]
+command = "npm run build"
