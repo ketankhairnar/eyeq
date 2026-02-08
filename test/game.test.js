@@ -50,17 +50,17 @@ assert(pn2 === 2, `Puzzle #2 on day 2: got ${pn2}`);
 section('Game State Machine');
 
 const game = createGame('2026-02-08');
-assert(game.rounds.length === 5, `5 rounds: got ${game.rounds.length}`);
+assert(game.rounds.length === 5, `5 rounds (from 8 types): got ${game.rounds.length}`);
 assert(game.status === 'ready', `Initial status: ${game.status}`);
 assert(game.currentRound === 0, `Starts at round 0`);
 assert(game.totalScore === 0, `Score starts at 0`);
 
-// All 5 round types present (order is shuffled per playId)
-const expectedTypes = new Set(['count', 'proportion', 'comparison', 'density', 'countExtreme']);
+// 5 rounds picked from 8 types, all unique
+const allTypes = new Set(['count', 'proportion', 'comparison', 'density', 'countExtreme', 'depth', 'tunnel', 'cluster3d']);
 const actualTypes = new Set(game.rounds.map(r => r.type));
 assert(actualTypes.size === 5, `5 unique round types: got ${actualTypes.size}`);
-for (const t of expectedTypes) {
-  assert(actualTypes.has(t), `Has round type ${t}`);
+for (const t of actualTypes) {
+  assert(allTypes.has(t), `Round type ${t} is valid`);
 }
 
 // === SCORING ===

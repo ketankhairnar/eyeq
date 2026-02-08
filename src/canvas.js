@@ -14,6 +14,16 @@ function getColors(theme) {
 const CANVAS_W = 840;
 const CANVAS_H = 588;
 
+function modulateColorChroma(oklchStr, scale) {
+  const m = oklchStr.match(/oklch\(([\d.]+)\s+([\d.]+)\s+([\d.]+)(?:\s*\/\s*([\d.]+))?\)/);
+  if (!m) return oklchStr;
+  const l = parseFloat(m[1]);
+  const c = parseFloat(m[2]) * scale;
+  const h = parseFloat(m[3]);
+  const a = m[4] !== undefined ? parseFloat(m[4]) : 1;
+  return `oklch(${l} ${c.toFixed(4)} ${h} / ${a})`;
+}
+
 export function createPuzzleCanvas(container) {
   const canvas = document.createElement('canvas');
   canvas.width = CANVAS_W;
@@ -41,6 +51,9 @@ export function generateRound(canvas, roundType, seed, themeId) {
     case 'comparison':   return generateComparison(ctx, rng, colors);
     case 'density':      return generateDensity(ctx, rng, colors);
     case 'countExtreme': return generateCount(ctx, rng, true, colors);
+    case 'depth':        return generateDepth(ctx, rng, colors);
+    case 'tunnel':       return generateTunnel(ctx, rng, colors);
+    case 'cluster3d':    return generateCluster3d(ctx, rng, colors);
     default:             return 0;
   }
 }
@@ -227,6 +240,286 @@ function generateDensity(ctx, rng, colors) {
   ctx.shadowBlur = 0;
 
   return targetCount;
+}
+
+// --- Depth: Layered Depth Field ---
+function generateDepth(ctx, rng, colors) {
+  const layerCount = 3 + Math.floor(rng() * 2); // 3 or 4 layers
+  const targetLayer = Math.floor(rng() * layerCount);
+  const layerH = CANVAS_H / layerCount;
+
+  // Draw atmospheric gradient bands between layers
+  for (let i = 0; i < layerCount; i++) {
+    const depthT = i / (layerCount - 1); // 0 = far, 1 = near
+    const y0 = i * layerH;
+    const grad = ctx.createLinearGradient(0, y0, 0, y0 + layerH);
+    const alpha = 0.03 + depthT * 0.06;
+    grad.addColorStop(0, `oklch(0.3 0.02 270 / ${alpha})`);
+    grad.addColorStop(1, `oklch(0.3 0.02 270 / ${alpha * 0.5})`);
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, y0, CANVAS_W, layerH);
+  }
+
+  // Depth labels on left edge
+  ctx.font = '700 14px Inter, system-ui';
+  ctx.textAlign = 'left';
+  for (let i = 0; i < layerCount; i++) {
+    const y = i * layerH + layerH / 2;
+    ctx.fillStyle = i === targetLayer ? colors.primary : colors.muted;
+    ctx.globalAlpha = i === targetLayer ? 1 : 0.4;
+    ctx.fillText(`D${i + 1}`, 8, y + 5);
+  }
+  ctx.globalAlpha = 1;
+
+  // Highlight target layer with glowing side bars
+  const targetY = targetLayer * layerH;
+  ctx.strokeStyle = colors.primary;
+  ctx.lineWidth = 3;
+  ctx.shadowColor = colors.primary;
+  ctx.shadowBlur = 12;
+  ctx.beginPath();
+  ctx.moveTo(0, targetY + 2);
+  ctx.lineTo(0, targetY + layerH - 2);
+  ctx.moveTo(CANVAS_W, targetY + 2);
+  ctx.lineTo(CANVAS_W, targetY + layerH - 2);
+  ctx.stroke();
+  // Horizontal boundary lines for target
+  ctx.setLineDash([6, 6]);
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(0, targetY);
+  ctx.lineTo(CANVAS_W, targetY);
+  ctx.moveTo(0, targetY + layerH);
+  ctx.lineTo(CANVAS_W, targetY + layerH);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.shadowBlur = 0;
+
+  // Generate particles across all layers
+  const totalCount = Math.round(120 + rng() * 200);
+  let targetCount = 0;
+  const margin = 30;
+
+  for (let i = 0; i < totalCount; i++) {
+    const layer = Math.floor(rng() * layerCount);
+    const depthT = layer / (layerCount - 1); // 0=far, 1=near
+    const y0 = layer * layerH;
+
+    const x = margin + rng() * (CANVAS_W - margin * 2);
+    const y = y0 + 10 + rng() * (layerH - 20);
+
+    // Size scales with depth: far=small, near=large
+    const r = 2 + depthT * 6 + rng() * 2;
+    // Alpha scales with depth
+    const alpha = 0.3 + depthT * 0.7;
+    // Chroma scales with depth
+    const chromaScale = 0.3 + depthT * 0.7;
+
+    const baseColor = rng() > 0.85 ? colors.secondary : colors.primary;
+    const color = modulateColorChroma(baseColor, chromaScale);
+
+    ctx.globalAlpha = alpha;
+    drawParticle(ctx, x, y, r, color);
+
+    if (layer === targetLayer) targetCount++;
+  }
+  ctx.globalAlpha = 1;
+
+  return targetCount;
+}
+
+// --- Tunnel: Perspective Tunnel ---
+function generateTunnel(ctx, rng, colors) {
+  const cx = CANVAS_W / 2;
+  const cy = CANVAS_H / 2;
+  const maxRadius = Math.min(CANVAS_W, CANVAS_H) / 2 - 20;
+  const ringCount = 4;
+  const ringBoundaries = [];
+  for (let i = 0; i <= ringCount; i++) {
+    ringBoundaries.push((i / ringCount) * maxRadius);
+  }
+  const targetRing = ringCount - 1; // outer ring
+
+  // Draw radial spoke lines (16 spokes)
+  ctx.strokeStyle = colors.muted;
+  ctx.lineWidth = 0.5;
+  ctx.globalAlpha = 0.3;
+  for (let s = 0; s < 16; s++) {
+    const angle = (s / 16) * Math.PI * 2;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + Math.cos(angle) * maxRadius, cy + Math.sin(angle) * maxRadius);
+    ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+
+  // Draw concentric ring boundaries
+  ctx.strokeStyle = colors.muted;
+  ctx.lineWidth = 0.8;
+  ctx.globalAlpha = 0.25;
+  for (let i = 1; i < ringCount; i++) {
+    ctx.beginPath();
+    ctx.arc(cx, cy, ringBoundaries[i], 0, Math.PI * 2);
+    ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+
+  // Outer boundary
+  ctx.strokeStyle = colors.muted;
+  ctx.lineWidth = 1;
+  ctx.globalAlpha = 0.4;
+  ctx.beginPath();
+  ctx.arc(cx, cy, maxRadius, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+
+  // Glowing vanishing point
+  const vpGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 12);
+  vpGrad.addColorStop(0, colors.primary);
+  vpGrad.addColorStop(1, 'transparent');
+  ctx.fillStyle = vpGrad;
+  ctx.beginPath();
+  ctx.arc(cx, cy, 12, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Highlight target ring (outer) with bright arc
+  ctx.strokeStyle = colors.primary;
+  ctx.lineWidth = 3;
+  ctx.shadowColor = colors.primary;
+  ctx.shadowBlur = 10;
+  ctx.beginPath();
+  ctx.arc(cx, cy, ringBoundaries[targetRing], 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(cx, cy, maxRadius, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  // "OUTER" label
+  ctx.font = '700 14px Inter, system-ui';
+  ctx.textAlign = 'center';
+  ctx.fillStyle = colors.primary;
+  const labelR = (ringBoundaries[targetRing] + maxRadius) / 2;
+  ctx.fillText('OUTER', cx + labelR * 0.7, cy - labelR * 0.7);
+
+  // Generate particles in rings
+  const totalCount = Math.round(80 + rng() * 120);
+  let targetCount = 0;
+
+  for (let i = 0; i < totalCount; i++) {
+    const ring = Math.floor(rng() * ringCount);
+    const rInner = ringBoundaries[ring];
+    const rOuter = ringBoundaries[ring + 1];
+    // Random position within ring
+    const angle = rng() * Math.PI * 2;
+    const dist = rInner + rng() * (rOuter - rInner);
+
+    const x = cx + Math.cos(angle) * dist;
+    const y = cy + Math.sin(angle) * dist;
+
+    // Depth: inner=far (small/dim), outer=near (large/bright)
+    const depthT = ring / (ringCount - 1);
+    const r = 2 + depthT * 5 + rng() * 2;
+    const alpha = 0.3 + depthT * 0.7;
+    const chromaScale = 0.3 + depthT * 0.7;
+
+    const baseColor = rng() > 0.85 ? colors.secondary : colors.primary;
+    const color = modulateColorChroma(baseColor, chromaScale);
+
+    ctx.globalAlpha = alpha;
+    drawParticle(ctx, x, y, r, color);
+
+    if (ring === targetRing) targetCount++;
+  }
+  ctx.globalAlpha = 1;
+
+  return targetCount;
+}
+
+// --- Cluster3d: 3D Sphere Projection ---
+function generateCluster3d(ctx, rng, colors) {
+  const cx = CANVAS_W / 2;
+  const cy = CANVAS_H / 2;
+  const sphereRadius = Math.min(CANVAS_W, CANVAS_H) / 2 - 40;
+
+  // Faint sphere outline
+  ctx.strokeStyle = colors.muted;
+  ctx.lineWidth = 1;
+  ctx.globalAlpha = 0.2;
+  ctx.beginPath();
+  ctx.arc(cx, cy, sphereRadius, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+
+  // Dashed equator line
+  ctx.strokeStyle = colors.muted;
+  ctx.lineWidth = 1.5;
+  ctx.globalAlpha = 0.35;
+  ctx.setLineDash([8, 6]);
+  ctx.beginPath();
+  ctx.moveTo(cx - sphereRadius, cy);
+  ctx.lineTo(cx + sphereRadius, cy);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.globalAlpha = 1;
+
+  // NEAR/FAR labels
+  ctx.font = '700 14px Inter, system-ui';
+  ctx.textAlign = 'center';
+  ctx.fillStyle = colors.primary;
+  ctx.fillText('NEAR', cx, cy + sphereRadius + 20);
+  ctx.fillStyle = colors.muted;
+  ctx.globalAlpha = 0.5;
+  ctx.fillText('FAR', cx, cy - sphereRadius - 10);
+  ctx.globalAlpha = 1;
+
+  // Generate Fibonacci sphere points
+  const totalCount = Math.round(80 + rng() * 150);
+  const goldenAngle = Math.PI * (3 - Math.sqrt(5));
+  const particles = [];
+  let nearCount = 0;
+
+  for (let i = 0; i < totalCount; i++) {
+    // Fibonacci sphere distribution with some randomness
+    const t = i / totalCount;
+    const inclination = Math.acos(1 - 2 * t);
+    const azimuth = goldenAngle * i + rng() * 0.3;
+
+    // 3D coordinates on unit sphere
+    const sx = Math.sin(inclination) * Math.cos(azimuth);
+    const sy = Math.sin(inclination) * Math.sin(azimuth);
+    const sz = Math.cos(inclination); // -1=top(far) to 1=bottom(near)
+
+    // Perspective projection (sz > 0 = near/front)
+    const perspectiveScale = 0.6 + 0.4 * (sz * 0.5 + 0.5); // near = larger projection
+    const px = cx + sx * sphereRadius * perspectiveScale * 0.85;
+    const py = cy + sy * sphereRadius * perspectiveScale * 0.85;
+
+    // Depth: sz > 0 = front/near hemisphere
+    const isNear = sz > 0;
+    const depthT = sz * 0.5 + 0.5; // 0=far(back), 1=near(front)
+
+    const r = 2 + depthT * 6 + rng() * 1.5;
+    const alpha = 0.2 + depthT * 0.8;
+    const chromaScale = 0.2 + depthT * 0.8;
+
+    const baseColor = rng() > 0.85 ? colors.secondary : colors.primary;
+    const color = modulateColorChroma(baseColor, chromaScale);
+
+    particles.push({ px, py, r, alpha, color, depthT, isNear });
+    if (isNear) nearCount++;
+  }
+
+  // Depth-sorted rendering: back particles first
+  particles.sort((a, b) => a.depthT - b.depthT);
+
+  for (const p of particles) {
+    ctx.globalAlpha = p.alpha;
+    drawParticle(ctx, p.px, p.py, p.r, p.color);
+  }
+  ctx.globalAlpha = 1;
+
+  return nearCount;
 }
 
 export { CANVAS_W, CANVAS_H };

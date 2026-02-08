@@ -1,6 +1,7 @@
 import { createRng, hashDateString } from './seed.js';
 
-const ROUND_TYPES = ['count', 'proportion', 'comparison', 'density', 'countExtreme'];
+const ROUND_TYPES = ['count', 'proportion', 'comparison', 'density', 'countExtreme', 'depth', 'tunnel', 'cluster3d'];
+const ROUNDS_PER_GAME = 5;
 
 const ROUND_CONFIG = {
   count:        { question: 'How many signals intercepted?', minRange: 30, maxRange: 80 },
@@ -8,6 +9,9 @@ const ROUND_CONFIG = {
   comparison:   { question: 'How many MORE in the larger sector?', minRange: 0, maxRange: 50 },
   density:      { question: 'How many signals in the highlighted quadrant?', minRange: 20, maxRange: 150 },
   countExtreme: { question: 'How many signals intercepted?', minRange: 100, maxRange: 600 },
+  depth:        { question: 'How many signals in the highlighted depth layer?', minRange: 25, maxRange: 110 },
+  tunnel:       { question: 'How many signals in the OUTER ring?', minRange: 15, maxRange: 70 },
+  cluster3d:    { question: 'How many signals on the NEAR side?', minRange: 30, maxRange: 140 },
 };
 
 const SCORE_TIERS = [
@@ -25,6 +29,9 @@ const AI_NOISE = {
   comparison:   { min: 0.10, max: 0.25 },
   density:      { min: 0.08, max: 0.20 },
   countExtreme: { min: 0.12, max: 0.30 },
+  depth:        { min: 0.08, max: 0.22 },
+  tunnel:       { min: 0.10, max: 0.24 },
+  cluster3d:    { min: 0.09, max: 0.23 },
 };
 
 const AI_WEAKNESS = {
@@ -33,6 +40,9 @@ const AI_WEAKNESS = {
   comparison:   'Fooled by object size differences',
   density:      'Has trouble with border objects',
   countExtreme: 'Loses accuracy in dense fields',
+  depth:        'Struggles with overlapping depth cues',
+  tunnel:       'Confused by radial perspective cues',
+  cluster3d:    'Misjudges 3D spatial distribution',
 };
 
 const BADGES = [
@@ -48,14 +58,15 @@ export function createGame(dateStr, playId = 0) {
   const seed = hashDateString(dateStr + '_p' + playId);
   const rng = createRng(seed);
 
-  // Fisher-Yates shuffle of round types — different order each play
+  // Fisher-Yates shuffle of round types, pick first ROUNDS_PER_GAME
   const types = [...ROUND_TYPES];
   for (let i = types.length - 1; i > 0; i--) {
     const j = Math.floor(rng() * (i + 1));
     [types[i], types[j]] = [types[j], types[i]];
   }
+  const selected = types.slice(0, ROUNDS_PER_GAME);
 
-  const rounds = types.map((type, i) => {
+  const rounds = selected.map((type, i) => {
     const config = ROUND_CONFIG[type];
     const noiseConfig = AI_NOISE[type];
     const noiseAmount = noiseConfig.min + rng() * (noiseConfig.max - noiseConfig.min);
@@ -173,4 +184,4 @@ export function getElapsedTime(game) {
   return Math.round((end - game.startTime) / 1000);
 }
 
-export { ROUND_TYPES, ROUND_CONFIG, SCORE_TIERS, AI_WEAKNESS };
+export { ROUND_TYPES, ROUNDS_PER_GAME, ROUND_CONFIG, SCORE_TIERS, AI_WEAKNESS };

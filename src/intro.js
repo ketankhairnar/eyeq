@@ -10,6 +10,9 @@ const TYPE_LABELS = {
   comparison: 'SECTOR COMPARE',
   density: 'QUADRANT DENSITY',
   countExtreme: 'MASS INTERCEPT',
+  depth: 'DEPTH FIELD',
+  tunnel: 'TUNNEL VIEW',
+  cluster3d: '3D CLUSTER',
 };
 
 let rafId = null;

@@ -88,7 +88,8 @@ function init() {
 
   // Keyboard shortcuts
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
       const btn = document.getElementById('lockin-btn')
         || document.getElementById('next-btn')
         || document.getElementById('results-btn')
