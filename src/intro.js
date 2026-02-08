@@ -60,26 +60,38 @@ export function startIntro(canvas, themeId) {
 
     ctx.globalAlpha = 1;
 
-    // Type label
+    // Determine active slide index
     const activeIdx = inCycle < DISPLAY_MS ? idx : (idx + 1) % snapshots.length;
+
+    // Dark backdrop strip behind label + dots for readability
+    const stripH = 72;
+    const grad = ctx.createLinearGradient(0, CANVAS_H - stripH, 0, CANVAS_H);
+    grad.addColorStop(0, 'oklch(0 0 0 / 0)');
+    grad.addColorStop(0.4, 'oklch(0 0 0 / 0.6)');
+    grad.addColorStop(1, 'oklch(0 0 0 / 0.8)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, CANVAS_H - stripH, CANVAS_W, stripH);
+
+    // Type label (scaled for 840px canvas displayed at ~420px)
     const label = snapshots[activeIdx].label;
-    ctx.font = '700 14px Inter, system-ui';
+    ctx.font = '800 28px Inter, system-ui';
     ctx.textAlign = 'center';
     ctx.fillStyle = theme.accent;
-    ctx.globalAlpha = 0.8;
-    ctx.fillText(label, CANVAS_W / 2, CANVAS_H - 28);
+    ctx.globalAlpha = 0.9;
+    ctx.fillText(label, CANVAS_W / 2, CANVAS_H - 36);
 
     // Pagination dots
-    const dotR = 4;
-    const gap = 16;
+    const dotR = 6;
+    const gap = 24;
     const dotsW = (snapshots.length - 1) * gap;
     const dotsX = CANVAS_W / 2 - dotsW / 2;
-    const dotsY = CANVAS_H - 12;
+    const dotsY = CANVAS_H - 14;
+    ctx.globalAlpha = 1;
     for (let i = 0; i < snapshots.length; i++) {
       ctx.beginPath();
       ctx.arc(dotsX + i * gap, dotsY, dotR, 0, Math.PI * 2);
       ctx.fillStyle = i === activeIdx ? theme.primary : theme.dim;
-      ctx.globalAlpha = i === activeIdx ? 1 : 0.5;
+      ctx.globalAlpha = i === activeIdx ? 1 : 0.4;
       ctx.fill();
     }
     ctx.globalAlpha = 1;
