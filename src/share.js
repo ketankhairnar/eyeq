@@ -15,7 +15,7 @@ export function buildShareString(game) {
     emojiLine,
     `${badge.name} — ${game.totalScore}/${maxScore}`,
     timeStr,
-    `eyeq.game`,
+    `eyeq.tacit.sh`,
   ].join('\n');
 }
 
