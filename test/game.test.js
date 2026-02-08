@@ -55,12 +55,13 @@ assert(game.status === 'ready', `Initial status: ${game.status}`);
 assert(game.currentRound === 0, `Starts at round 0`);
 assert(game.totalScore === 0, `Score starts at 0`);
 
-// Round types in order
-assert(game.rounds[0].type === 'count', `R1 is count`);
-assert(game.rounds[1].type === 'proportion', `R2 is proportion`);
-assert(game.rounds[2].type === 'comparison', `R3 is comparison`);
-assert(game.rounds[3].type === 'density', `R4 is density`);
-assert(game.rounds[4].type === 'countExtreme', `R5 is countExtreme`);
+// All 5 round types present (order is shuffled per playId)
+const expectedTypes = new Set(['count', 'proportion', 'comparison', 'density', 'countExtreme']);
+const actualTypes = new Set(game.rounds.map(r => r.type));
+assert(actualTypes.size === 5, `5 unique round types: got ${actualTypes.size}`);
+for (const t of expectedTypes) {
+  assert(actualTypes.has(t), `Has round type ${t}`);
+}
 
 // === SCORING ===
 section('Scoring');

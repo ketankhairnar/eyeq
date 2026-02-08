@@ -1,6 +1,6 @@
 import './style.css';
 import { createGame, setActualAnswer, submitEstimate, advanceRound, useHint, getBadge, getElapsedTime, ROUND_TYPES } from './src/game.js';
-import { getTodayDateString, getPuzzleNumber, createRng, hashDateString } from './src/seed.js';
+import { getTodayDateString, getPuzzleNumber, createRng, hashDateString, nextPlayId } from './src/seed.js';
 import { Dial } from './src/dial.js';
 import { createPuzzleCanvas, generateRound } from './src/canvas.js';
 import { buildShareString, copyToClipboard } from './src/share.js';
@@ -68,7 +68,8 @@ function init() {
     return;
   }
 
-  game = createGame(dateStr);
+  const playId = nextPlayId();
+  game = createGame(dateStr, playId);
   game.puzzleNumber = getPuzzleNumber(dateStr);
 
   puzzleCanvas = createPuzzleCanvas(canvasArea);
@@ -164,7 +165,7 @@ function renderStatusDots() {
 function startRound() {
   setAmbient('playing', 0.25);
   const round = game.rounds[game.currentRound];
-  const roundSeed = hashDateString(game.dateStr + '_round_' + game.currentRound);
+  const roundSeed = hashDateString(game.dateStr + '_p' + game.playId + '_round_' + game.currentRound);
 
   const actualAnswer = generateRound(puzzleCanvas, round.type, roundSeed, currentThemeId);
   setActualAnswer(game, game.currentRound, actualAnswer);

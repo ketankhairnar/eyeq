@@ -28,3 +28,11 @@ export function getPuzzleNumber(dateStr) {
   const today = new Date(dateStr);
   return Math.floor((today - epoch) / 86400000) + 1;
 }
+
+// Monotonic play counter — increments each game start, persists in localStorage.
+// Mixing this into the seed ensures replays on the same day produce different puzzles.
+export function nextPlayId() {
+  const id = parseInt(localStorage.getItem('eyeq_playId') || '0', 10) + 1;
+  localStorage.setItem('eyeq_playId', String(id));
+  return id;
+}

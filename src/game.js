@@ -43,11 +43,19 @@ const BADGES = [
   { min: 0,   name: 'OFF AIR',    flavor: 'Signal lost.' },
 ];
 
-export function createGame(dateStr) {
-  const seed = hashDateString(dateStr);
+export function createGame(dateStr, playId = 0) {
+  // Mix playId into seed so replays on the same day produce different puzzles
+  const seed = hashDateString(dateStr + '_p' + playId);
   const rng = createRng(seed);
 
-  const rounds = ROUND_TYPES.map((type, i) => {
+  // Fisher-Yates shuffle of round types — different order each play
+  const types = [...ROUND_TYPES];
+  for (let i = types.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [types[i], types[j]] = [types[j], types[i]];
+  }
+
+  const rounds = types.map((type, i) => {
     const config = ROUND_CONFIG[type];
     const noiseConfig = AI_NOISE[type];
     const noiseAmount = noiseConfig.min + rng() * (noiseConfig.max - noiseConfig.min);
@@ -74,6 +82,7 @@ export function createGame(dateStr) {
   return {
     dateStr,
     seed,
+    playId,
     puzzleNumber: 0,
     rounds,
     currentRound: 0,
