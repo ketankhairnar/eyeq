@@ -9,11 +9,11 @@ export function buildShareString(game) {
   const timeStr = `${minutes}:${String(seconds).padStart(2, '0')}`;
 
   return [
-    `⚡ EYEQ #${game.puzzleNumber} ⚡`,
+    `EYEQ #${game.puzzleNumber}`,
     `Human ${game.humanWins} — AI ${game.aiWins}`,
     emojiLine,
     `${badge.name} — ${game.totalScore}/500`,
-    `⏱️ ${timeStr}`,
+    timeStr,
     `eyeq.game`,
   ].join('\n');
 }

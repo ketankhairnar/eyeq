@@ -11,12 +11,12 @@ const ROUND_CONFIG = {
 };
 
 const SCORE_TIERS = [
-  { maxPct: 5,   emoji: '🎯', points: 100, label: 'EXACT',    color: 'green' },
-  { maxPct: 15,  emoji: '🔥', points: 75,  label: 'CLOSE',    color: 'cyan' },
-  { maxPct: 25,  emoji: '🌡️', points: 50,  label: 'WARM',     color: 'yellow' },
-  { maxPct: 40,  emoji: '💨', points: 25,  label: 'COOL',     color: 'orange' },
-  { maxPct: 60,  emoji: '🧊', points: 10,  label: 'COLD',     color: 'red' },
-  { maxPct: Infinity, emoji: '❌', points: 0, label: 'MISS', color: 'red' },
+  { maxPct: 5,   emoji: '◉', points: 100, label: 'EXACT',    color: 'green' },
+  { maxPct: 15,  emoji: '◈', points: 75,  label: 'CLOSE',    color: 'cyan' },
+  { maxPct: 25,  emoji: '▲', points: 50,  label: 'WARM',     color: 'yellow' },
+  { maxPct: 40,  emoji: '◇', points: 25,  label: 'COOL',     color: 'orange' },
+  { maxPct: 60,  emoji: '▽', points: 10,  label: 'COLD',     color: 'red' },
+  { maxPct: Infinity, emoji: '✕', points: 0, label: 'MISS', color: 'red' },
 ];
 
 const AI_NOISE = {

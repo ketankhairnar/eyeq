@@ -5,19 +5,19 @@
 }
 
 :root {
-  --bg: oklch(0.08 0.03 270);
-  --surface: oklch(0.14 0.02 270);
-  --cyan: oklch(0.78 0.15 195);
-  --magenta: oklch(0.65 0.20 330);
-  --green: oklch(0.75 0.18 155);
-  --yellow: oklch(0.82 0.15 90);
-  --orange: oklch(0.72 0.18 55);
-  --red: oklch(0.65 0.22 25);
-  --text: oklch(0.93 0.01 270);
-  --muted: oklch(0.45 0.02 270);
+  --bg: oklch(0.05 0.03 270);
+  --surface: oklch(0.12 0.02 270);
+  --cyan: oklch(0.72 0.18 280);
+  --magenta: oklch(0.70 0.22 330);
+  --green: oklch(0.80 0.20 155);
+  --yellow: oklch(0.88 0.16 90);
+  --orange: oklch(0.78 0.20 55);
+  --red: oklch(0.70 0.24 25);
+  --text: oklch(0.96 0.005 270);
+  --muted: oklch(0.55 0.02 270);
 
   --font: 'Inter', system-ui, sans-serif;
-  --dial-size: clamp(180px, 55vw, 260px);
+  --dial-size: clamp(200px, 60vw, 280px);
 }
 
 html, body {
@@ -61,12 +61,15 @@ body::before {
 /* Background gradient mesh */
 body {
   background:
-    radial-gradient(ellipse at 20% 30%, oklch(0.15 0.08 270 / 0.3), transparent 50%),
-    radial-gradient(ellipse at 80% 70%, oklch(0.12 0.06 195 / 0.2), transparent 50%),
+    radial-gradient(ellipse at 20% 30%, oklch(0.10 0.06 270 / 0.25), transparent 50%),
+    radial-gradient(ellipse at 80% 70%, oklch(0.08 0.04 195 / 0.15), transparent 50%),
     var(--bg);
 }
 
 #app {
+  --ab: oklch(0.70 0.18 280 / 0.25);
+  --ag: oklch(0.70 0.18 280 / 0.08);
+  --ao: oklch(0.70 0.18 280 / 0.15);
   max-width: 420px;
   width: 100%;
   height: 100dvh;
@@ -76,20 +79,27 @@ body {
   flex-direction: column;
   position: relative;
   padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  border: 2px solid var(--ab);
+  border-radius: 4px;
+  box-shadow:
+    inset 0 0 40px var(--ag),
+    0 0 30px var(--ao),
+    0 0 80px var(--ag);
+  transition: border-color 0.4s ease, box-shadow 0.4s ease;
 }
 
 .status-bar {
   flex-shrink: 0;
-  height: 48px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 24px;
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
+  gap: 28px;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--text);
 }
 
 .canvas-area {
@@ -98,7 +108,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 8px;
+  padding: 4px 8px;
 }
 
 .canvas-area canvas {
@@ -106,15 +116,15 @@ body {
   max-width: 420px;
   height: auto;
   aspect-ratio: 840 / 588;
-  border-radius: 8px;
+  /* border-radius set by theme via JS */
 }
 
 .question-area {
   flex-shrink: 0;
   text-align: center;
-  padding: 8px 16px;
-  font-size: clamp(14px, 3.5vw, 18px);
-  font-weight: 700;
+  padding: 6px 16px;
+  font-size: clamp(15px, 3.5vw, 20px);
+  font-weight: 800;
   letter-spacing: -0.01em;
   color: var(--text);
 }
@@ -141,19 +151,19 @@ body {
 /* Buttons */
 .btn {
   font-family: var(--font);
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 800;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  padding: 12px 24px;
+  padding: 14px 28px;
   border: 2px solid var(--cyan);
   border-radius: 8px;
   background: transparent;
   color: var(--cyan);
   cursor: pointer;
   transition: transform 0.1s ease, background 0.15s ease;
-  min-height: 48px;
-  min-width: 48px;
+  min-height: 52px;
+  min-width: 52px;
 }
 
 .btn:active {
@@ -166,21 +176,26 @@ body {
 }
 
 .btn-primary:active {
-  background: oklch(0.70 0.15 195);
+  background: oklch(0.60 0.15 280);
 }
 
 /* Neon text glow */
 .neon-text {
+  color: oklch(0.95 0.08 280);
   text-shadow:
-    0 0 7px var(--cyan),
-    0 0 20px oklch(0.78 0.15 195 / 0.4),
-    0 0 40px oklch(0.78 0.15 195 / 0.2);
+    0 0 8px oklch(0.72 0.18 280),
+    0 0 24px oklch(0.72 0.18 280 / 0.5),
+    0 0 48px oklch(0.72 0.18 280 / 0.2);
 }
 
-/* Desktop glow on game column */
+/* Desktop: border more visible with extra breathing room */
 @media (min-width: 480px) {
   #app {
-    box-shadow: 0 0 80px oklch(0.78 0.15 195 / 0.08);
+    border-width: 2px;
+    margin-top: 4px;
+    margin-bottom: 4px;
+    height: calc(100dvh - 8px);
+    border-radius: 8px;
   }
 }
 
