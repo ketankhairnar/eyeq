@@ -109,6 +109,9 @@ function showStartScreen() {
     <div style="color:var(--muted);font-size:14px;font-weight:600">5 rounds · 25s each · beat the AI</div>
   </div>`;
 
+  // Hide dial on start screen — timer shouldn't be visible yet
+  dialArea.style.display = 'none';
+
   // Start intro animation on the puzzle canvas
   if (puzzleCanvas) {
     startIntro(puzzleCanvas, currentThemeId);
@@ -129,6 +132,7 @@ function applyCanvasTheme() {
 function startGame() {
   stopIntro();
   initAudio();
+  dialArea.style.display = '';
   game.status = 'playing';
   game.startTime = Date.now();
   startRound();
